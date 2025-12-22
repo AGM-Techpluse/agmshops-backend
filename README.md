@@ -23,7 +23,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/thetruesammyjay/agm-store-builder-backend.git
+git clone https://github.com/AGM-Techpluse/agmshops-backend
 cd agm-store-builder-backend
 
 # Install dependencies
@@ -463,5 +463,6 @@ This project is licensed under the MIT License.
 - [Railway Documentation](https://docs.railway.app/)
 
 ---
+
 
 **Built with ❤️ by AGM Tech Plus**
