@@ -12,7 +12,7 @@ console.log('CORS Allowed Origins:', config.allowedOrigins);
 /**
  * CORS configuration
  */
-const corsOptions = {
+const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) {
@@ -37,10 +37,12 @@ const corsOptions = {
     });
     
     if (isAllowed) {
+      console.log(`CORS: Allowing origin: ${origin}`);
       callback(null, true);
     } else {
-      // Don't throw error, just reject with false
-      callback(null, false);
+      console.warn(`CORS: Blocking origin: ${origin}. Allowed origins:`, config.allowedOrigins);
+      // Send error to trigger proper CORS error response
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
