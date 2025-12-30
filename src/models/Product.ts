@@ -44,6 +44,8 @@ export interface ProductFilters {
   maxPrice?: number;
   inStock?: boolean;
   isActive?: boolean;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 /**
@@ -143,6 +145,80 @@ export async function findProductsByStoreId(
   const products = await db.query<any>(
     `SELECT * FROM products WHERE ${whereClause} 
      ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    [...values, limit, offset]
+  );
+
+  return {
+    products: products.map(parseProductJson),
+    total,
+  };
+}
+
+/**
+ * Find products by user ID (all products from user's stores)
+ */
+export async function findProductsByUserId(
+  userId: string,
+  filters?: ProductFilters,
+  page: number = 1,
+  limit: number = 20
+): Promise<{ products: Product[]; total: number }> {
+  const offset = (page - 1) * limit;
+  const conditions: string[] = ['s.user_id = ?'];
+  const values: any[] = [userId];
+
+  // Apply filters
+  if (filters?.search) {
+    conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
+    const searchTerm = `%${filters.search}%`;
+    values.push(searchTerm, searchTerm);
+  }
+
+  if (filters?.minPrice !== undefined) {
+    conditions.push('p.price >= ?');
+    values.push(filters.minPrice);
+  }
+
+  if (filters?.maxPrice !== undefined) {
+    conditions.push('p.price <= ?');
+    values.push(filters.maxPrice);
+  }
+
+  if (filters?.inStock) {
+    conditions.push('p.stock_quantity > 0');
+  }
+
+  if (filters?.isActive !== undefined) {
+    conditions.push('p.is_active = ?');
+    values.push(filters.isActive);
+  }
+
+  const whereClause = conditions.join(' AND ');
+  const sortBy = filters?.sortBy || 'created_at';
+  const sortOrder = filters?.sortOrder || 'DESC';
+  
+  // Validate sortBy to prevent SQL injection
+  const allowedSortFields = ['created_at', 'updated_at', 'name', 'price', 'stock_quantity'];
+  const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
+
+  // Get total count
+  const countResult = await db.queryOne<any>(
+    `SELECT COUNT(*) as total 
+     FROM products p 
+     INNER JOIN stores s ON p.store_id = s.id 
+     WHERE ${whereClause}`,
+    values
+  );
+  const total = countResult?.total || 0;
+
+  // Get products with store information
+  const products = await db.query<any>(
+    `SELECT p.*, s.username as store_username, s.name as store_name
+     FROM products p 
+     INNER JOIN stores s ON p.store_id = s.id 
+     WHERE ${whereClause} 
+     ORDER BY p.${sortField} ${sortOrder}
+     LIMIT ? OFFSET ?`,
     [...values, limit, offset]
   );
 
