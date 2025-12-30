@@ -82,6 +82,40 @@ export async function listProducts(
 }
 
 /**
+ * List all products for user's stores (dashboard)
+ */
+export async function listUserProducts(
+  userId: string,
+  filters: any
+): Promise<{ products: Product[]; pagination: any }> {
+  const { findProductsByUserId } = await import('../models/Product');
+  
+  const page = parseInt(filters.page) || 1;
+  const limit = parseInt(filters.limit) || 20;
+
+  const productFilters: ProductFilters = {
+    search: filters.search,
+    minPrice: filters.minPrice ? parseFloat(filters.minPrice) : undefined,
+    maxPrice: filters.maxPrice ? parseFloat(filters.maxPrice) : undefined,
+    inStock: filters.inStock === 'true',
+    sortBy: filters.sortBy || 'createdAt',
+    sortOrder: filters.sortOrder || 'DESC',
+  };
+
+  const result = await findProductsByUserId(userId, productFilters, page, limit);
+
+  return {
+    products: result.products,
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / limit),
+    },
+  };
+}
+
+/**
  * Get single product (public)
  */
 export async function getProduct(
