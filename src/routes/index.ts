@@ -10,6 +10,7 @@ import storeRoutes from './stores';
 import productRoutes from './products';
 import orderRoutes from './orders';
 import paymentRoutes from './payments';
+import bankAccountRoutes from './bankAccounts';
 import uploadRoutes from './upload';
 import analyticsRoutes from './analytics';
 import webhookRoutes from './webhooks';
@@ -45,6 +46,9 @@ router.use('/orders', orderRoutes);
 
 // Payments
 router.use('/payments', paymentRoutes);
+
+// Bank accounts (alias for convenience)
+router.use('/bank-accounts', bankAccountRoutes);
 
 // File upload
 router.use('/upload', uploadRoutes);
