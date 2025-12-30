@@ -49,6 +49,27 @@ export const listProducts = asyncHandler(
 );
 
 /**
+ * GET /products
+ * List all products for authenticated user's stores (dashboard)
+ */
+export const listDashboardProducts = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction) => {
+    if (!req.user) {
+      throw errors.unauthorized();
+    }
+
+    const filters = req.query;
+    const result = await productService.listUserProducts(req.user.id, filters);
+
+    res.json({
+      success: true,
+      data: result.products,
+      pagination: result.pagination,
+    });
+  }
+);
+
+/**
  * GET /stores/:username/products/:productId
  * Get single product (public)
  */
