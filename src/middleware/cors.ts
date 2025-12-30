@@ -6,6 +6,9 @@
 import cors from 'cors';
 import { config } from '../config/env';
 
+// Log allowed origins on startup
+console.log('CORS Allowed Origins:', config.allowedOrigins);
+
 /**
  * CORS configuration
  */
@@ -13,6 +16,11 @@ const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if wildcard is allowed
+    if (config.allowedOrigins.includes('*')) {
       return callback(null, true);
     }
     
@@ -31,7 +39,8 @@ const corsOptions = {
     if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Don't throw error, just reject with false
+      callback(null, false);
     }
   },
   credentials: true,
@@ -45,6 +54,8 @@ const corsOptions = {
   ],
   exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Per-Page'],
   maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 export const corsMiddleware = cors(corsOptions);
