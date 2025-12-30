@@ -17,6 +17,18 @@ import {
 const router = Router();
 
 /**
+ * GET /products
+ * List all products for authenticated user's stores (dashboard)
+ */
+router.get(
+  '/',
+  authenticate,
+  rateLimiter,
+  validateQuery(productFiltersSchema),
+  productController.listDashboardProducts
+);
+
+/**
  * POST /stores/:storeId/products
  * Create a new product (protected)
  */
